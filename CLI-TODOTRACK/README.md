@@ -45,6 +45,3 @@
 
 **File Details**
 - tasks.json:This file is used to store the task data persistently. It will be created automatically if it doesn't exist in the project directory.
-
-
-
