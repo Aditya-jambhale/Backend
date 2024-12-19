@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Activity Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .error {
+            color: red;
+        }
+        .activity {
+            margin-top: 20px;
+        }
+        .activity-item {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GitHub Activity Viewer</h1>
+        <input type="text" id="username" placeholder="Enter GitHub username" />
+        <button id="fetchActivity">Fetch Activity</button>
+        <p class="error" id="error"></p>
+        <div class="activity" id="activity"></div>
+    </div>
+
+    <script>
+        document.getElementById('fetchActivity').addEventListener('click', async () => {
+            const username = document.getElementById('username').value;
+            const errorElement = document.getElementById('error');
+            const activityElement = document.getElementById('activity');
+
+            errorElement.textContent = '';
+            activityElement.innerHTML = '';
+
+            if (!username) {
+                errorElement.textContent = 'Please enter a GitHub username.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/github/${username}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.activity.length === 0) {
+                        activityElement.textContent = 'No recent activity found.';
+                    } else {
+                        data.activity.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'activity-item';
+                            div.textContent = item;
+                            activityElement.appendChild(div);
+                        });
+                    }
+                } else {
+                    const errorData = await response.json();
+                    errorElement.textContent = errorData.error || 'An error occurred.';
+                }
+            } catch (err) {
+                errorElement.textContent = 'Failed to fetch activity. Please try again later.';
+            }
+        });
+    </script>
+</body>
+</html>
