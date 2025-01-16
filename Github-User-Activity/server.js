@@ -8,7 +8,7 @@ const PORT = 3000;
 // Middleware to serve static files from the "public" folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API route to fetch GitHub activity
+// API route to fetch GitHub commits
 app.get('/api/github/:username', (req, res) => {
     const username = req.params.username;
 
@@ -35,28 +35,18 @@ app.get('/api/github/:username', (req, res) => {
                 try {
                     const events = JSON.parse(data);
 
-                    const activity = events.map(event => {
-                        let activityText = '';
-                        switch (event.type) {
-                            case 'PushEvent':
-                                activityText = `Pushed ${event.payload.commits.length} commits to ${event.repo.name}`;
-                                break;
+                    // Filter only PushEvent and extract commit details
+                    const commits = events
+                        .filter(event => event.type === 'PushEvent')
+                        .flatMap(event =>
+                            event.payload.commits.map(commit => ({
+                                repo: event.repo.name,
+                                message: commit.message,
+                                timestamp: event.created_at
+                            }))
+                        );
 
-                            case 'IssuesEvent':
-                                activityText = `${event.payload.action} an issue in ${event.repo.name}`;
-                                break;
-
-                            case 'WatchEvent':
-                                activityText = `Starred ${event.repo.name}`;
-                                break;
-
-                            default:
-                                activityText = `Performed ${event.type} in ${event.repo.name}`;
-                        }
-                        return activityText;
-                    });
-
-                    res.json({ activity });
+                    res.json({ commits });
                 } catch (error) {
                     res.status(500).json({ error: "Failed to parse GitHub API response." });
                 }
