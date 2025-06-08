@@ -123,4 +123,6 @@ switch (command) {
 
     default:
         console.log(`Unknown command: ${command}. Use 'help' to see available commands.`);
+
+        
 }
